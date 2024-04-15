@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type KeyProduct struct{}
+// type KeyProduct struct{}
 
 type Products struct {
 	l *log.Logger
@@ -51,10 +51,11 @@ func (p *Products) AddProduct(rw http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle POST Products request")
 
 	prod := r.Context().Value(KeyProduct{}).(data.Product)
+
 	data.AddProduct(&prod)
 }
 
-func (p *Products) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
+func (p Products) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
@@ -78,9 +79,9 @@ func (p *Products) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// type KeyProduct struct
+type KeyProduct struct{}
 
-func (p *Products) MiddlewareProductValidation(next http.Handler) http.Handler {
+func (p Products) MiddlewareValidateProduct(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		prod := data.Product{}
@@ -93,8 +94,8 @@ func (p *Products) MiddlewareProductValidation(next http.Handler) http.Handler {
 		}
 
 		ctx := context.WithValue(r.Context(), KeyProduct{}, prod)
-		r = r.WithContext(ctx)
+		req := r.WithContext(ctx)
 
-		next.ServeHTTP(rw, r)
+		next.ServeHTTP(rw, req)
 	})
 }
